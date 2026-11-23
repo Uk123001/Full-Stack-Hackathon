@@ -1,0 +1,296 @@
+=====================================================================
+ANTIGRAVITY PROJECT PROMPT TEMPLATE  (MERN Full Stack Hackathon)
+Replace everything in [SQUARE BRACKETS] before sending.
+Attach the context image(s) in the same message.
+=====================================================================
+
+ROLE
+You are the lead engineer of a multi-agent team building a complete,
+production-quality full stack web application for a hackathon.
+Use Antigravity's Agent Manager to plan first, then spawn parallel agents
+(see AGENT PLAN). Produce Artifacts (task list, implementation plan,
+walkthrough, test screenshots/recordings) so I can review your progress.
+
+---------------------------------------------------------------------
+1. PROJECT OVERVIEW
+---------------------------------------------------------------------
+Project name   : [PROJECT NAME]
+One-line pitch : [WHAT THE APP DOES AND FOR WHOM]
+Problem solved : [PROBLEM STATEMENT / HACKATHON THEME]
+Target users   : [USER TYPES, e.g. Student, Admin, Organizer]
+Core features  :
+  1. [FEATURE 1]
+  2. [FEATURE 2]
+  3. [FEATURE 3]
+  4. [FEATURE 4]
+Nice-to-have (only if time permits): [OPTIONAL FEATURES]
+
+---------------------------------------------------------------------
+2. CONTEXT IMAGE(S)
+---------------------------------------------------------------------
+I have attached an image: [DESCRIBE IT: wireframe / UI mockup / ER diagram /
+architecture diagram / problem statement].
+- Analyse the image carefully BEFORE planning.
+- Treat it as the source of truth for layout, fields, colours, flow, and
+  naming wherever it is specific.
+- If something in the image conflicts with this prompt, follow the image
+  for UI/design and this prompt for tech stack and security; list the
+  conflict in the implementation plan.
+- If something is unclear, state your assumption in the plan and continue.
+  Do not stop to ask unless it truly blocks progress.
+
+---------------------------------------------------------------------
+3. TECH STACK (STRICT)
+---------------------------------------------------------------------
+Frontend : React JS (functional components + hooks), Vite,
+           React Router, Axios, component-based architecture,
+           react-hook-form + Zod for forms,
+           [TAILWIND CSS / MATERIAL UI / PLAIN CSS MODULES]
+Backend  : Node.js + Express.js, RESTful API design
+Database : MongoDB with Mongoose (MongoDB Atlas or local; use MONGO_URI)
+Auth     : JWT (access token, httpOnly cookie or Authorization header),
+           bcrypt password hashing, role-based access control
+Email    : Nodemailer (SMTP / Gmail App Password) for OTP and notifications
+Captcha  : [Google reCAPTCHA v2 checkbox / v3 / hCaptcha], verified
+           SERVER-SIDE on every protected form
+Validation: Zod (client) + Zod or Joi/express-validator (server)
+Other    : dotenv, cors, helmet, express-rate-limit, morgan
+
+---------------------------------------------------------------------
+4. AGENT PLAN (USE ANTIGRAVITY AGENTS)
+---------------------------------------------------------------------
+Step 0 - PLANNER AGENT (runs first)
+  - Read this prompt and the attached image.
+  - Produce an Implementation Plan artifact: folder structure, data models,
+    API contract (routes, request/response shapes), component tree, page
+    list, and env variables.
+  - Wait for my approval of the plan if review is enabled; otherwise
+    continue.
+
+Then run these in parallel, sharing the API contract from the plan:
+
+  AGENT A - DATABASE AGENT
+    Mongoose schemas, indexes, relations, seed script with realistic
+    sample data, DB connection with error handling.
+
+  AGENT B - BACKEND AGENT
+    Express app, routes, controllers, services, middleware, auth, role
+    guards, centralized error handler, consistent JSON response format.
+
+  AGENT C - SECURITY / VALIDATION AGENT
+    Server-side validation schemas, captcha verification middleware,
+    rate limiting, input sanitization, helmet, CORS config.
+
+  AGENT D - EMAIL/OTP AGENT
+    OTP generation, hashing, expiry, resend cooldown, attempt limits,
+    HTML email templates, Nodemailer transport.
+
+  AGENT E - FRONTEND AGENT
+    Pages, reusable components, routing, protected routes, forms with
+    conditional validation, API service layer, loading/error/empty states,
+    responsive UI matching the attached image.
+
+  AGENT F - QA / BROWSER AGENT (runs last)
+    Start backend + frontend, use the browser to test every flow
+    end to end (signup, OTP, login, forms, captcha, CRUD, role access),
+    capture screenshots/recordings as artifacts, then report bugs and
+    have the relevant agent fix them. Repeat until all flows pass.
+
+---------------------------------------------------------------------
+5. FOLDER STRUCTURE
+---------------------------------------------------------------------
+project-root/
+  client/
+    src/
+      components/      (reusable: Button, Input, Modal, Navbar, Loader,
+                        FormField, OtpInput, CaptchaBox, Toast ...)
+      pages/           ([LIST PAGES])
+      layouts/
+      routes/          (ProtectedRoute, RoleRoute)
+      services/        (axios instance + API calls)
+      context/         (AuthContext)
+      hooks/
+      schemas/         (Zod schemas)
+      utils/
+      App.jsx, main.jsx
+    .env.example
+  server/
+    src/
+      config/          (db.js, mailer.js, env.js)
+      models/
+      routes/
+      controllers/
+      services/
+      middleware/      (auth, role, validate, captcha, rateLimit, error)
+      validators/
+      templates/       (email HTML)
+      utils/
+      app.js, server.js
+    .env.example
+  README.md
+
+---------------------------------------------------------------------
+6. DATABASE MODELS (MongoDB / Mongoose)
+---------------------------------------------------------------------
+Define at minimum:
+  User   : name, email (unique, indexed), passwordHash, role
+           [USER/ADMIN/...], isVerified, createdAt
+  Otp    : email, otpHash, purpose (signup/login/reset), expiresAt (TTL
+           index), attempts, createdAt
+  [MODEL 3] : [FIELDS]
+  [MODEL 4] : [FIELDS]
+Add timestamps, sensible required fields, enums, and indexes.
+Include a seed script: `npm run seed`.
+
+---------------------------------------------------------------------
+7. REST API REQUIREMENTS
+---------------------------------------------------------------------
+- Base path: /api/v1
+- Use proper HTTP verbs and status codes (200, 201, 400, 401, 403, 404,
+  409, 422, 429, 500).
+- Response format: { success: boolean, message: string, data?: any,
+  errors?: [{ field, message }] }
+- Minimum endpoints:
+    POST   /auth/register
+    POST   /auth/verify-otp
+    POST   /auth/resend-otp
+    POST   /auth/login
+    POST   /auth/forgot-password
+    POST   /auth/reset-password
+    GET    /auth/me
+    POST   /auth/logout
+    CRUD   for [RESOURCE 1], [RESOURCE 2]
+    GET    /admin/... (admin only, if applicable)
+- Pagination, search, and filtering on list endpoints.
+
+---------------------------------------------------------------------
+8. OTP + EMAIL FLOW
+---------------------------------------------------------------------
+- 6-digit numeric OTP, generated with crypto (not Math.random).
+- Store only a HASH of the OTP. Expiry: 5 minutes.
+- Max 5 verification attempts, then lock and require a new OTP.
+- Resend cooldown: 30-60 seconds; limit resends per hour.
+- Use OTP for: [SIGNUP EMAIL VERIFICATION / LOGIN 2FA / PASSWORD RESET].
+- Emails to send (clean, branded HTML templates):
+    1. OTP email
+    2. Welcome email after verification
+    3. [CONFIRMATION / STATUS-UPDATE EMAIL FOR YOUR FEATURE]
+- Frontend: 6-box OTP input component, countdown timer, resend button,
+  clear error messages.
+- Provide a DEV fallback: if SMTP is not configured, log the OTP to the
+  server console so the demo never breaks.
+
+---------------------------------------------------------------------
+9. CAPTCHA
+---------------------------------------------------------------------
+- Place captcha on: [REGISTER, LOGIN, FORGOT PASSWORD, PUBLIC SUBMISSION
+  FORMS].
+- Frontend sends the captcha token with the request.
+- Backend middleware verifies the token with the provider's verify API
+  using the secret key from env. Reject with 400 if missing/invalid.
+- Never trust client-side-only captcha.
+- Use the provider's test keys in .env.example so the project runs
+  immediately.
+
+---------------------------------------------------------------------
+10. FORMS + CONDITIONAL VALIDATION RULES
+---------------------------------------------------------------------
+Build forms with react-hook-form + Zod. Validate on BOTH client and
+server with the same rules. Show inline, field-level error messages.
+
+General rules:
+  - Email: valid format; password: min 8 chars, upper, lower, number,
+    special char; confirm password must match.
+  - Phone: [COUNTRY FORMAT, e.g. 10-digit Indian mobile starting 6-9].
+  - Trim inputs; block empty/whitespace-only values.
+
+Conditional rules (examples - replace/extend with mine):
+  - IF [FIELD A] = "[VALUE X]" THEN [FIELD B] is REQUIRED and must be
+    [RULE].
+  - IF [FIELD C] = "Yes" THEN show [FIELD D] and require it.
+  - IF [ROLE] = "Student" THEN require [College, Year, Roll No];
+    IF [ROLE] = "Professional" THEN require [Company, Experience].
+  - IF [AGE/DOB] indicates under 18 THEN require [GUARDIAN NAME/CONSENT].
+  - IF [START DATE] is set THEN [END DATE] must be after it.
+  - IF [TYPE] = "Other" THEN require a free-text "Please specify".
+  - Hide and clear dependent fields when their condition becomes false,
+    and do not submit hidden values.
+Implement conditional logic with Zod `superRefine` / discriminated unions
+on the client and the same logic on the server.
+
+---------------------------------------------------------------------
+11. FRONTEND REQUIREMENTS
+---------------------------------------------------------------------
+- Fully component-based; small reusable components, no giant files.
+- Pages: [LANDING, REGISTER, VERIFY OTP, LOGIN, DASHBOARD, ...].
+- Global auth state via Context; protected + role-based routes.
+- Axios instance with interceptors (attach token, handle 401).
+- Loading spinners, skeletons, toasts, empty states, error boundaries.
+- Fully responsive (mobile first), accessible (labels, aria, focus).
+- Match the attached image for layout, colours, typography, and spacing.
+- Clean, modern, demo-ready UI.
+
+---------------------------------------------------------------------
+12. SECURITY + QUALITY
+---------------------------------------------------------------------
+- Never commit secrets; provide .env.example for client and server.
+- bcrypt (cost >= 10), JWT expiry, httpOnly cookies if used.
+- helmet, CORS restricted to the client origin, rate limiting on auth
+  and OTP routes, NoSQL-injection-safe queries (sanitize inputs).
+- Centralized error handling; never leak stack traces in responses.
+- Clean, commented, consistent code (ESLint/Prettier config included).
+
+---------------------------------------------------------------------
+13. ENVIRONMENT VARIABLES
+---------------------------------------------------------------------
+server/.env.example
+  PORT=5000
+  MONGO_URI=
+  JWT_SECRET=
+  JWT_EXPIRES_IN=7d
+  CLIENT_URL=http://localhost:5173
+  SMTP_HOST=
+  SMTP_PORT=
+  SMTP_USER=
+  SMTP_PASS=
+  EMAIL_FROM=
+  CAPTCHA_SECRET=
+  OTP_EXPIRY_MINUTES=5
+
+client/.env.example
+  VITE_API_URL=http://localhost:5000/api/v1
+  VITE_CAPTCHA_SITE_KEY=
+
+---------------------------------------------------------------------
+14. DELIVERABLES
+---------------------------------------------------------------------
+1. Complete working code in the folder structure above.
+2. Everything properly connected: React -> Express REST API -> MongoDB.
+3. `npm install` + `npm run dev` works for both client and server
+   (optionally a root script that runs both with concurrently).
+4. Seed script with demo data and demo login credentials.
+5. README.md: overview, features, tech stack, setup steps, env guide,
+   API list, screenshots, and how to demo.
+6. Postman collection or .http file for the API.
+7. Final Walkthrough artifact with QA screenshots proving each flow works.
+
+---------------------------------------------------------------------
+15. WORKING RULES
+---------------------------------------------------------------------
+- Plan first, then build, then test in the browser, then fix.
+- Do not leave TODOs, placeholder code, or mock data in the final app
+  (except seed data).
+- If a package or step fails, debug and resolve it yourself.
+- Keep me updated through Artifacts; summarize what each agent finished.
+- Hackathon deadline: [DATE/TIME]. Prioritize a polished, working core
+  over extra features.
+
+DEFINITION OF DONE
+A user can open the app, register with captcha, receive an OTP email,
+verify, log in, use the main features through validated conditional
+forms, and see data persisted in MongoDB, with no console errors and
+a responsive UI that matches the attached image.
+
+=====================================================================
+END OF PROMPT
+=====================================================================
